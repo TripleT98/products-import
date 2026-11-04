@@ -1,0 +1,88 @@
+<div class="detail-top">
+    <h1>Карточка товара</h1>
+    <a mat-stroked-button routerLink="/products" [queryParams]="backQuery()">К списку товаров</a>
+</div>
+<p>
+    Товар: <span class="route-id">{{ id() }}</span>
+</p>
+<mat-card appearance="outlined"
+    ><mat-card-content>
+        @if (state$ | async; as state) {
+            @switch (state.kind) {
+                @case (ViewStateKind.Loading) {
+                    <mat-progress-bar mode="indeterminate" aria-label="Загрузка товара" />
+                    <p role="status" class="status">Загрузка товара…</p>
+                }
+                @case (ViewStateKind.NotFound) {
+                    <div class="status">
+                        <h2>Товар не найден</h2>
+                        <p>Проверьте адрес или вернитесь к списку товаров.</p>
+                    </div>
+                }
+                @case (ViewStateKind.Error) {
+                    <div class="status" role="alert">
+                        <p>{{ state.message }}</p>
+                        <button mat-stroked-button type="button" (click)="retry()">
+                            Повторить загрузку
+                        </button>
+                    </div>
+                }
+                @case (ViewStateKind.Ready) {
+                    <h3>Изображения</h3>
+                    <app-image-carousel [images]="state.product.images" [imageAlt]="state.product.name" />
+                    <h2>{{ state.product.name }}</h2>
+                    <dl class="fields">
+                        <div>
+                            <dt>ID</dt>
+                            <dd>{{ state.product.id }}</dd>
+                        </div>
+                        <div>
+                            <dt>Внешний код</dt>
+                            <dd>{{ state.product.externalCode }}</dd>
+                        </div>
+                        <div>
+                            <dt>Цена продажи</dt>
+                            <dd>{{ state.product.price }}</dd>
+                        </div>
+                        <div>
+                            <dt>Закупочная цена</dt>
+                            <dd>{{ state.product.purchasePrice }}</dd>
+                        </div>
+                        <div>
+                            <dt>Скидка, %</dt>
+                            <dd>{{ state.product.discount }}</dd>
+                        </div>
+                        <div>
+                            <dt>Создан (UTC)</dt>
+                            <dd>{{ state.product.createdAt | date : 'dd:MM:yyyy' }}</dd>
+                        </div>
+                        <div>
+                            <dt>Обновлён (UTC)</dt>
+                            <dd>{{ state.product.updatedAt | date : 'dd:MM:yyyy' }}</dd>
+                        </div>
+                    </dl>
+                    <h3>Описание</h3>
+                    <p class="description">
+                        {{ state.product.description || 'Описание не указано.' }}
+                    </p>
+                    <h3>Атрибуты</h3>
+                    @if (state.product.attributes.length === 0) {
+                        <p>Дополнительных атрибутов нет.</p>
+                    } @else {
+                        <dl class="attributes">
+                            @for (attribute of state.product.attributes; track attribute.id) {
+                                <div>
+                                    <dt>{{ attribute.key }}</dt>
+                                    <dd>{{ attribute.value }}</dd>
+                                </div>
+                            }
+                        </dl>
+                    }
+                }
+            }
+        }
+    </mat-card-content></mat-card
+>
+@if (importJobId(); as jobId) {
+    <app-import-report-widget [jobId]="jobId" />
+}

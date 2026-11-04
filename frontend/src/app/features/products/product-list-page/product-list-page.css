@@ -1,0 +1,38 @@
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 12px;
+}
+.filters mat-form-field {
+    flex: 1 1 180px;
+}
+.table-scroll {
+    overflow-x: auto;
+}
+table {
+    min-width: 600px;
+    width: 100%;
+}
+a {
+    color: var(--mat-sys-primary);
+}
+tr.product-row {
+    cursor: pointer;
+}
+tr.product-row:hover {
+    background: var(--mat-sys-surface-container-highest);
+}
+.summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.status {
+    padding: 24px 0;
+}
+.error {
+    color: var(--mat-sys-error);
+}

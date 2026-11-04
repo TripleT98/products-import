@@ -1,0 +1,54 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+.detail-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+h1 {
+    margin: 0;
+}
+h2,
+dt,
+dd,
+p,
+figcaption {
+    overflow-wrap: anywhere;
+}
+h2 {
+    line-height: 1.35;
+}
+mat-card {
+    margin-bottom: 24px;
+}
+dl {
+    margin: 16px 0 0;
+}
+.fields,
+.attributes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 20px;
+}
+dt {
+    color: var(--app-text-muted);
+    font-size: 14px;
+}
+dd {
+    margin: 6px 0 0;
+    line-height: 1.6;
+}
+.description {
+    white-space: pre-wrap;
+}
+.route-id {
+    color: var(--app-text-muted);
+}
+.status {
+    padding: 24px 0;
+}

@@ -1,0 +1,103 @@
+<h1>Товары</h1>
+<mat-card appearance="outlined"
+    ><mat-card-content>
+        <form
+            class="filters"
+            [formGroup]="controller.form"
+            (ngSubmit)="controller.applyFilters()"
+            aria-label="Фильтры товаров"
+        >
+            <mat-form-field
+                ><mat-label>Название</mat-label
+                ><input matInput formControlName="name" type="search"
+            /></mat-form-field>
+            <mat-form-field
+                ><mat-label>Цена от</mat-label
+                ><input matInput formControlName="price_min" inputmode="decimal"
+            /></mat-form-field>
+            <mat-form-field
+                ><mat-label>Цена до</mat-label
+                ><input matInput formControlName="price_max" inputmode="decimal"
+            /></mat-form-field>
+            <button mat-button type="button" (click)="controller.reset()">Сбросить фильтры</button>
+        </form>
+        @if (controller.error(); as error) {
+            <p role="alert" class="error">{{ error }}</p>
+        } @else if (vm$ | async; as vm) {
+            <section [attr.aria-busy]="vm.loading" aria-label="Результаты поиска">
+                @if (vm.loading) {
+                    <mat-progress-bar mode="indeterminate" aria-label="Загрузка товаров" />
+                    <p role="status" class="status">Загрузка товаров…</p>
+                } @else if (vm.error) {
+                    <div role="alert" class="status error">
+                        <p>{{ vm.error.message }}</p>
+                        <button mat-stroked-button type="button" (click)="controller.retry()">
+                            Повторить загрузку
+                        </button>
+                    </div>
+                } @else {
+                    <div class="summary">
+                        <p role="status">Найдено: {{ vm.pagination.total }}</p>
+                        <p>Страница {{ vm.pagination.page }} из {{ vm.totalPages }}</p>
+                    </div>
+                    @if (vm.items.length === 0) {
+                        <p class="status">
+                            Товары не найдены. Измените фильтры или выберите другую страницу.
+                        </p>
+                    } @else {
+                        <div class="table-scroll">
+                            <table mat-table [dataSource]="vm.items" aria-label="Список товаров">
+                                <ng-container matColumnDef="externalCode"
+                                    ><th mat-header-cell *matHeaderCellDef>Код</th>
+                                    <td mat-cell *matCellDef="let product">
+                                        {{ product.externalCode }}
+                                    </td></ng-container
+                                >
+                                <ng-container matColumnDef="name"
+                                    ><th mat-header-cell *matHeaderCellDef>Название</th>
+                                    <td mat-cell *matCellDef="let product">
+                                        <a
+                                            [routerLink]="['/products', product.id]"
+                                            [queryParams]="controller.linkQuery()"
+                                            (click)="$event.stopPropagation()"
+                                            >{{ product.name }}</a
+                                        >
+                                    </td></ng-container
+                                >
+                                <ng-container matColumnDef="price"
+                                    ><th mat-header-cell *matHeaderCellDef>Цена</th>
+                                    <td mat-cell *matCellDef="let product">
+                                        {{ product.price }}
+                                    </td></ng-container
+                                >
+                                <ng-container matColumnDef="discount"
+                                    ><th mat-header-cell *matHeaderCellDef>Скидка, %</th>
+                                    <td mat-cell *matCellDef="let product">
+                                        {{ product.discount }}
+                                    </td></ng-container
+                                >
+                                <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                                <tr
+                                    mat-row
+                                    class="product-row"
+                                    *matRowDef="let product; columns: columns"
+                                    tabindex="0"
+                                    (click)="controller.openProduct(product.id)"
+                                    (keydown.enter)="controller.openProduct(product.id)"
+                                ></tr>
+                            </table>
+                        </div>
+                    }
+                    <mat-paginator
+                        [length]="vm.pagination.total"
+                        [pageSize]="vm.pagination.limit"
+                        [pageIndex]="vm.pagination.page - 1"
+                        [pageSizeOptions]="[10, 20, 50, 100]"
+                        showFirstLastButtons
+                        aria-label="Страницы товаров"
+                        (page)="controller.changePage($event.pageIndex, $event.pageSize)"
+                    />
+                }
+            </section>
+        }</mat-card-content
+></mat-card>

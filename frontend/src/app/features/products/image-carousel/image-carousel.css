@@ -1,0 +1,12 @@
+:host { display: block; min-width: 0; }
+.carousel { border-radius: 12px; }
+.carousel:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 4px; }
+.viewer { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; gap: 12px; align-items: center; }
+figure { margin: 0; min-width: 0; }
+img, .image-fallback { width: 100%; height: clamp(200px, 40vw, 420px); border-radius: 8px; background: var(--mat-sys-surface-container-high); }
+img { display: block; object-fit: contain; }
+.image-fallback { display: grid; place-items: center; padding: 16px; text-align: center; box-sizing: border-box; }
+figcaption { font-size: 12px; line-height: 1.5; margin-top: 8px; color: var(--app-text-muted); overflow-wrap: anywhere; }
+svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.counter { text-align: center; color: var(--app-text-muted); font-size: 14px; margin: 12px 0 0; }
+@media (max-width: 500px) { .viewer { gap: 4px; } }

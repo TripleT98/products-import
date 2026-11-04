@@ -1,0 +1,31 @@
+@if (current(); as image) {
+    <section class="carousel" aria-label="Изображения товара" aria-roledescription="карусель"
+        tabindex="0" (keydown)="onKeydown($event)">
+        <div class="viewer">
+            <button mat-icon-button type="button" class="previous" aria-label="Предыдущее изображение"
+                [disabled]="index() === 0" (click)="previous()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+            </button>
+            <figure>
+                @if (!brokenImages().has(image.path) && imagePath(image.path); as path) {
+                    <img [src]="path" [alt]="imageAlt() + ' — изображение ' + (index() + 1)"
+                        (error)="imageFailed(image.path)" />
+                } @else {
+                    <div class="image-fallback" role="img" aria-label="Изображение недоступно">
+                        Изображение недоступно
+                    </div>
+                }
+                <figcaption>Источник: {{ image.url }}</figcaption>
+            </figure>
+            <button mat-icon-button type="button" class="next" aria-label="Следующее изображение"
+                [disabled]="index() >= images().length - 1" (click)="next()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+            </button>
+        </div>
+        <p class="counter" aria-live="polite" aria-atomic="true">
+            Изображение {{ index() + 1 }} из {{ images().length }}
+        </p>
+    </section>
+} @else {
+    <p>Изображений нет.</p>
+}
