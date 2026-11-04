@@ -1,0 +1,79 @@
+# Local environment and credentials; keep public configuration templates.
+.env
+.env.*
+!.env.example
+!.env.*.example
+auth.json
+.npmrc
+!.npmrc.example
+.netrc
+.git-credentials
+secrets/
+.aws/
+.ssh/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Dependencies, caches and generated builds. Lock files remain trackable.
+vendor/
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.cache/
+.angular/
+.phpunit.cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
+.phpstan/
+dist/
+build/
+coverage/
+test-results/
+playwright-report/
+
+# Runtime files and local data; source/test image assets remain trackable.
+uploads/
+storage/
+/images/
+/backend/public/images/
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.sqlite
+*.sqlite3
+*.dump
+
+# User workbooks are private. Only explicitly synthetic XLSX fixtures may be added.
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+!backend/tests/Fixtures/**/*.xlsx
+!backend/tests/fixtures/**/*.xlsx
+!frontend/tests/fixtures/**/*.xlsx
+!tests/fixtures/**/*.xlsx
+# Never add the supplied source workbook, even under a fixture directory.
+import example*.xlsx
+
+# Local editor/agent state and operating-system files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+/docs/project-spec.md
+/docs/task-sequence.md
+/docs/source-task.md
+/docs/implementation-status.md
+/docs/checks/t*-verification.json
+/docs/checks/xlsx-sample-report.json
+# Project-specific working instructions stay local.
+/AGENTS.md
