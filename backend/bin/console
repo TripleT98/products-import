@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\Infrastructure\DoctrineFactory;
+use App\Infrastructure\MigrationFactory;
+use Doctrine\Migrations\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Symfony\Component\Console\Application;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$application = new Application('Product import database');
+ConsoleRunner::addCommands($application, MigrationFactory::create());
+$application->addCommand(new ValidateSchemaCommand(new SingleManagerProvider(DoctrineFactory::entityManager())));
+$application->addCommand(new \App\Command\LoadFixturesCommand());
+$application->addCommand(new \App\Command\InspectWorkbookCommand());
+$application->addCommand(new \App\Command\EnqueueImportCommand());
+$application->addCommand(new \App\Command\WorkImportsCommand());
+$application->addCommand(new \App\Command\ImportQueueStatsCommand());
+$application->run();
