@@ -1,0 +1,23 @@
+:host {
+    display: block;
+    margin-top: 28px;
+    min-width: 0;
+}
+.table-scroll {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    min-width: 760px;
+}
+td {
+    overflow-wrap: anywhere;
+    max-width: 320px;
+    white-space: pre-wrap;
+}
+.warning {
+    color: var(--app-warning);
+}
+.error {
+    color: var(--mat-sys-error);
+}

@@ -1,0 +1,30 @@
+:host {
+    display: block;
+    margin-top: 24px;
+    min-width: 0;
+}
+dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 20px;
+}
+dt {
+    color: var(--app-text-muted);
+}
+dd {
+    margin: 8px 0;
+    font-size: 20px;
+}
+.route-id {
+    overflow-wrap: anywhere;
+}
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+.fatal {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

@@ -1,0 +1,14 @@
+label,
+input {
+    display: block;
+    margin: 16px 0;
+}
+input {
+    max-width: 100%;
+}
+.file-info {
+    overflow-wrap: anywhere;
+}
+[role='alert'] {
+    color: var(--mat-sys-error);
+}

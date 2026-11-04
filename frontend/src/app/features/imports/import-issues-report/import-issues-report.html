@@ -1,0 +1,82 @@
+<h3>Ошибки и предупреждения</h3>
+@if (state$ | async; as state) {
+    @switch (state.kind) {
+        @case (ViewStateKind.Loading) {
+            <mat-progress-bar mode="indeterminate" aria-label="Загрузка отчёта" />
+            <p role="status">Загрузка отчёта…</p>
+        }
+        @case (ViewStateKind.Error) {
+            <div role="alert">
+                <p>{{ ImportErrorMessage.ReportUnavailable }}</p>
+                <button mat-stroked-button type="button" (click)="retry()">
+                    Повторить загрузку отчёта
+                </button>
+            </div>
+        }
+        @case (ViewStateKind.Ready) {
+            <p role="status">Записей отчёта: {{ state.page.pagination.total }}</p>
+            @if (state.page.items.length === 0) {
+                <p>Ошибок и предупреждений нет.</p>
+            } @else {
+                <div class="table-scroll">
+                    <table
+                        mat-table
+                        [dataSource]="state.page.items"
+                        aria-label="Ошибки и предупреждения импорта"
+                    >
+                        <ng-container matColumnDef="severity"
+                            ><th mat-header-cell *matHeaderCellDef>Уровень</th>
+                            <td
+                                mat-cell
+                                *matCellDef="let issue"
+                                [class.warning]="issue.severity === IssueSeverity.Warning"
+                                [class.error]="issue.severity === IssueSeverity.Error"
+                            >
+                                {{ issue.severity === IssueSeverity.Warning ? 'Предупреждение' : 'Ошибка' }}
+                            </td></ng-container
+                        >
+                        <ng-container matColumnDef="rowNumber"
+                            ><th mat-header-cell *matHeaderCellDef>Строка</th>
+                            <td mat-cell *matCellDef="let issue">
+                                {{ issue.rowNumber ?? '—' }}
+                            </td></ng-container
+                        >
+                        <ng-container matColumnDef="externalCode"
+                            ><th mat-header-cell *matHeaderCellDef>Внешний код</th>
+                            <td mat-cell *matCellDef="let issue">
+                                {{ issue.externalCode ?? '—' }}
+                            </td></ng-container
+                        >
+                        <ng-container matColumnDef="field"
+                            ><th mat-header-cell *matHeaderCellDef>Поле</th>
+                            <td mat-cell *matCellDef="let issue">
+                                {{ issue.field ?? '—' }}
+                            </td></ng-container
+                        >
+                        <ng-container matColumnDef="code"
+                            ><th mat-header-cell *matHeaderCellDef>Код</th>
+                            <td mat-cell *matCellDef="let issue">{{ issue.code }}</td></ng-container
+                        >
+                        <ng-container matColumnDef="message"
+                            ><th mat-header-cell *matHeaderCellDef>Сообщение</th>
+                            <td mat-cell *matCellDef="let issue">
+                                {{ issue.message }}
+                            </td></ng-container
+                        >
+                        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                        <tr mat-row *matRowDef="let issue; columns: columns"></tr>
+                    </table>
+                </div>
+            }
+            <mat-paginator
+                aria-label="Страницы отчёта"
+                [length]="state.page.pagination.total"
+                [pageSize]="state.page.pagination.limit"
+                [pageIndex]="state.page.pagination.page - 1"
+                [pageSizeOptions]="[10, 20, 50, 100]"
+                showFirstLastButtons
+                (page)="changePage($event.pageIndex, $event.pageSize)"
+            />
+        }
+    }
+}

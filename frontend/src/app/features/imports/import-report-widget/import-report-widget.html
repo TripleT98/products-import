@@ -1,0 +1,95 @@
+<mat-card appearance="outlined"
+    ><mat-card-content>
+        <h2>Отчёт выбранного импорта</h2>
+        <p>Статус и ошибки всей выбранной задачи импорта.</p>
+        <p class="route-id">Задача: {{ jobId() }}</p>
+        @if (state$ | async; as state) {
+            @if (state.kind === ViewStateKind.Loading && !paused()) {
+                <mat-progress-bar mode="indeterminate" aria-label="Получение статуса" />
+                <p role="status">Получаем статус импорта…</p>
+            }
+            @if (state.kind === ViewStateKind.Error) {
+                <div role="alert">
+                    <p>{{ state.message }}</p>
+                    <button mat-stroked-button type="button" (click)="resume()">
+                        Повторить получение статуса
+                    </button>
+                </div>
+            }
+            @if (state.kind === ViewStateKind.Ready) {
+                <h3 role="status" [attr.aria-label]="labels[state.job.status]">
+                    {{ labels[state.job.status] }}
+                </h3>
+                @if (!paused() && (!terminal(state.job.status) || state.job.totalRows !== null)) {
+                    <mat-progress-bar
+                        [mode]="state.job.totalRows === null ? 'indeterminate' : 'determinate'"
+                        [value]="percent(state.job)"
+                        aria-label="Прогресс импорта"
+                    />
+                }
+                <dl>
+                    <div>
+                        <dt>Общее число строк</dt>
+                        <dd data-testid="totalRows">
+                            {{
+                                state.job.totalRows === null ? 'Определяется' : state.job.totalRows
+                            }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Обработано</dt>
+                        <dd data-testid="processedRows">{{ state.job.processedRows }}</dd>
+                    </div>
+                    <div>
+                        <dt>Создано товаров</dt>
+                        <dd data-testid="createdProducts">{{ state.job.createdProducts }}</dd>
+                    </div>
+                    <div>
+                        <dt>Обновлено товаров</dt>
+                        <dd data-testid="updatedProducts">{{ state.job.updatedProducts }}</dd>
+                    </div>
+                    <div>
+                        <dt>Ошибок строк</dt>
+                        <dd data-testid="failedRows">{{ state.job.failedRows }}</dd>
+                    </div>
+                    <div>
+                        <dt>Предупреждений</dt>
+                        <dd data-testid="warningCount">{{ state.job.warningCount }}</dd>
+                    </div>
+                </dl>
+                @if (state.job.fatalError; as fatal) {
+                    <p class="fatal" role="alert">{{ fatal.code }}: {{ fatal.message }}</p>
+                }
+                <a mat-stroked-button routerLink="/products" [queryParams]="productsQuery()"
+                    >К товарам</a
+                >
+                <app-import-issues-report
+                    [jobId]="jobId()"
+                    [revision]="
+                        state.job.status + ':' + state.job.failedRows + ':' + state.job.warningCount
+                    "
+                />
+                @if (terminal(state.job.status)) {
+                    <p>Обновление статуса завершено.</p>
+                }
+            }
+            <div class="controls">
+                @if (paused()) {
+                    <p role="status">
+                        Обновление экрана приостановлено. Сам импорт продолжает выполняться.
+                    </p>
+                    <button mat-stroked-button type="button" (click)="resume()">
+                        Продолжить обновление
+                    </button>
+                } @else if (
+                    state.kind === ViewStateKind.Loading ||
+                    (state.kind === ViewStateKind.Ready && !terminal(state.job.status))
+                ) {
+                    <button mat-button type="button" (click)="pause()">
+                        Остановить обновление
+                    </button>
+                }
+            </div>
+        }
+    </mat-card-content></mat-card
+>

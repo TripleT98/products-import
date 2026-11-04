@@ -1,0 +1,27 @@
+<h1>Импорт товаров</h1>
+<mat-card appearance="outlined"
+    ><mat-card-content>
+        <p>Выберите книгу XLSX размером до 10 МиБ. Структуру и ограничения проверит сервер.</p>
+        <label for="import-file">Файл XLSX</label>
+        <input
+            id="import-file"
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            [disabled]="busy()"
+            (change)="selectFile($event)"
+        />
+        @if (file(); as selected) {
+            <p class="file-info">{{ selected.name }} · {{ selected.size }} байт</p>
+        }
+        @if (error(); as message) {
+            <p role="alert">{{ message }}</p>
+        }
+        @if (busy()) {
+            <mat-progress-bar mode="indeterminate" aria-label="Отправка файла" />
+            <p role="status">Отправляем файл и ставим импорт в очередь…</p>
+        }
+        <button mat-flat-button type="button" [disabled]="!canUpload()" (click)="upload()">
+            Начать импорт
+        </button>
+    </mat-card-content></mat-card
+>
