@@ -1,0 +1,14 @@
+name: product-import-e2e-check
+
+services:
+  fixtures:
+    image: product-import-e2e-fixtures:t26
+  app:
+    image: product-import-e2e-backend:t26
+    environment:
+      XLSX_MAX_DATA_ROWS: '30'
+      IMPORT_RATE_LIMIT: '5'
+  worker:
+    image: product-import-e2e-backend:t26
+  nginx:
+    image: product-import-e2e-nginx:t26

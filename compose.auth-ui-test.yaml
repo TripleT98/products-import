@@ -1,0 +1,14 @@
+name: product-import-auth-ui-check
+
+services:
+  app:
+    image: product-import-auth-ui-backend:t20
+  nginx:
+    image: product-import-auth-ui-nginx:t20
+    network_mode: !reset null
+    ports: [127.0.0.1::80]
+    networks: [tests, browser-http]
+
+networks:
+  browser-http:
+    internal: false

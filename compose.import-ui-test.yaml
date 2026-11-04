@@ -1,0 +1,12 @@
+name: product-import-import-ui-check
+
+services:
+  app:
+    image: product-import-import-ui-backend:t24
+    environment:
+      XLSX_MAX_DATA_ROWS: '20'
+      IMPORT_RATE_LIMIT: '5'
+  worker:
+    image: product-import-import-ui-backend:t24
+  nginx:
+    image: product-import-import-ui-nginx:t24

@@ -1,0 +1,7 @@
+name: product-import-list-ui-check
+
+services:
+  app:
+    image: product-import-list-ui-backend:t22
+  nginx:
+    image: product-import-list-ui-nginx:t22

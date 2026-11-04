@@ -1,0 +1,21 @@
+name: product-import-frontend-check
+
+services:
+  web:
+    image: product-import-frontend-check:t19
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: production
+    # Only static/deep-link requests are probed here; API is covered in T17/T18.
+    extra_hosts: [app:127.0.0.1]
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1/_nginx-health]
+      interval: 1s
+      timeout: 3s
+      retries: 15
+    networks: [tests]
+
+networks:
+  tests:
+    internal: true

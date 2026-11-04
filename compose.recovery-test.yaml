@@ -1,0 +1,9 @@
+name: product-import-recovery-check
+
+services:
+  worker:
+    image: product-import-recovery-backend:t18
+    environment:
+      # Each synthetic HTTP operation is <1s; production default remains 60s.
+      IMPORT_LEASE_SECONDS: '5'
+      IMPORT_RETRY_DELAY_MS: '100'

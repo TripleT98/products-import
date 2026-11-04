@@ -1,0 +1,414 @@
+{
+  "checkedAt": "2026-11-01T16:59:24.597237+00:00",
+  "npm": {
+    "@angular/core": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/core/22.0.0",
+      "engines": {
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+      },
+      "peerDependencies": {
+        "rxjs": "^6.5.3 || ^7.4.0",
+        "zone.js": "~0.15.0 || ~0.16.0",
+        "@angular/compiler": "22.0.0"
+      }
+    },
+    "@angular/compiler-cli": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/compiler-cli/22.0.0",
+      "engines": {
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+      },
+      "peerDependencies": {
+        "typescript": ">=6.0 <6.1",
+        "@angular/compiler": "22.0.0"
+      }
+    },
+    "@angular/cli": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/cli/22.0.0",
+      "engines": {
+        "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0",
+        "yarn": ">= 1.13.0"
+      },
+      "peerDependencies": {}
+    },
+    "@angular/build": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/build/22.0.0",
+      "engines": {
+        "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0",
+        "yarn": ">= 1.13.0"
+      },
+      "peerDependencies": {
+        "less": "^4.2.0",
+        "karma": "^6.4.0",
+        "tslib": "^2.3.0",
+        "vitest": "^4.0.8",
+        "postcss": "^8.4.0",
+        "ng-packagr": "^22.0.0",
+        "typescript": ">=6.0 <6.1",
+        "tailwindcss": "^2.0.0 || ^3.0.0 || ^4.0.0",
+        "@angular/ssr": "^22.0.0",
+        "@angular/core": "^22.0.0",
+        "@angular/compiler": "^22.0.0",
+        "@angular/localize": "^22.0.0",
+        "@angular/compiler-cli": "^22.0.0",
+        "@angular/service-worker": "^22.0.0",
+        "istanbul-lib-instrument": "^6.0.0",
+        "@angular/platform-server": "^22.0.0",
+        "@angular/platform-browser": "^22.0.0"
+      }
+    },
+    "@angular/material": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/material/22.0.0",
+      "engines": {},
+      "peerDependencies": {
+        "rxjs": "^6.5.3 || ^7.4.0",
+        "@angular/cdk": "22.0.0",
+        "@angular/core": "^22.0.0 || ^23.0.0",
+        "@angular/forms": "^22.0.0 || ^23.0.0",
+        "@angular/common": "^22.0.0 || ^23.0.0",
+        "@angular/platform-browser": "^22.0.0 || ^23.0.0"
+      }
+    },
+    "@angular/cdk": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@angular/cdk/22.0.0",
+      "engines": {},
+      "peerDependencies": {
+        "rxjs": "^6.5.3 || ^7.4.0",
+        "@angular/core": "^22.0.0 || ^23.0.0",
+        "@angular/common": "^22.0.0 || ^23.0.0",
+        "@angular/platform-browser": "^22.0.0 || ^23.0.0"
+      }
+    },
+    "@ngrx/store": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@ngrx/store/22.0.0",
+      "engines": {},
+      "peerDependencies": {
+        "rxjs": "^6.5.3 || ^7.5.0",
+        "@angular/core": "^22.0.0"
+      }
+    },
+    "@ngrx/effects": {
+      "version": "22.0.0",
+      "source": "https://registry.npmjs.org/@ngrx/effects/22.0.0",
+      "engines": {},
+      "peerDependencies": {
+        "rxjs": "^6.5.3 || ^7.5.0",
+        "@ngrx/store": "22.0.0",
+        "@angular/core": "^22.0.0"
+      }
+    },
+    "typescript": {
+      "version": "6.0.2",
+      "source": "https://registry.npmjs.org/typescript/6.0.2",
+      "engines": {
+        "node": ">=14.17"
+      },
+      "peerDependencies": {}
+    },
+    "rxjs": {
+      "version": "7.8.2",
+      "source": "https://registry.npmjs.org/rxjs/7.8.2",
+      "engines": {},
+      "peerDependencies": {}
+    },
+    "vitest": {
+      "version": "4.0.8",
+      "source": "https://registry.npmjs.org/vitest/4.0.8",
+      "engines": {
+        "node": "^20.0.0 || ^22.0.0 || >=24.0.0"
+      },
+      "peerDependencies": {
+        "jsdom": "*",
+        "happy-dom": "*",
+        "@vitest/ui": "4.0.8",
+        "@types/node": "^20.0.0 || ^22.0.0 || >=24.0.0",
+        "@types/debug": "^4.1.12",
+        "@edge-runtime/vm": "*",
+        "@vitest/browser-preview": "4.0.8",
+        "@vitest/browser-playwright": "4.0.8",
+        "@vitest/browser-webdriverio": "4.0.8"
+      }
+    },
+    "@playwright/test": {
+      "version": "1.56.1",
+      "source": "https://registry.npmjs.org/@playwright/test/1.56.1",
+      "engines": {
+        "node": ">=18"
+      },
+      "peerDependencies": {}
+    }
+  },
+  "composer": {
+    "slim/slim": {
+      "version": "4.15.3",
+      "source": "https://repo.packagist.org/p2/slim/slim.json",
+      "require": {
+        "php": "~7.4.0 || ~8.0.0 || ~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+        "ext-json": "*",
+        "nikic/fast-route": "^1.3",
+        "psr/container": "^1.0 || ^2.0",
+        "psr/http-factory": "^1.1",
+        "psr/http-message": "^1.1 || ^2.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "psr/log": "^1.1 || ^2.0 || ^3.0"
+      },
+      "conflict": {}
+    },
+    "slim/psr7": {
+      "version": "1.8.0",
+      "source": "https://repo.packagist.org/p2/slim/psr7.json",
+      "require": {
+        "php": "^8.0",
+        "fig/http-message-util": "^1.1.5",
+        "psr/http-factory": "^1.1",
+        "psr/http-message": "^1.0 || ^2.0",
+        "ralouphie/getallheaders": "^3.0"
+      },
+      "conflict": {}
+    },
+    "doctrine/orm": {
+      "version": "3.7.6",
+      "source": "https://repo.packagist.org/p2/doctrine/orm.json",
+      "require": {
+        "php": "^8.1",
+        "ext-ctype": "*",
+        "composer-runtime-api": "^2",
+        "doctrine/collections": "^2.2 || ^3.1",
+        "doctrine/dbal": "^3.8.2 || ^4",
+        "doctrine/deprecations": "^0.5.3 || ^1",
+        "doctrine/event-manager": "^2.1.1",
+        "doctrine/inflector": "^1.4 || ^2.0",
+        "doctrine/instantiator": "^1.3 || ^2",
+        "doctrine/lexer": "^3",
+        "doctrine/persistence": "^3.3.1 || ^4",
+        "psr/cache": "^1 || ^2 || ^3",
+        "symfony/console": "^5.4 || ^6.0 || ^7.0 || ^8.0",
+        "symfony/polyfill-php86": "^1.37",
+        "symfony/var-exporter": "^6.3.9 || ^7.0 || ^8.0"
+      },
+      "conflict": {}
+    },
+    "doctrine/dbal": {
+      "version": "4.5.0",
+      "source": "https://repo.packagist.org/p2/doctrine/dbal.json",
+      "require": {
+        "php": "^8.2",
+        "doctrine/deprecations": "^1.1.5",
+        "psr/cache": "^1|^2|^3",
+        "psr/log": "^1|^2|^3"
+      },
+      "conflict": {}
+    },
+    "doctrine/migrations": {
+      "version": "3.9.8",
+      "source": "https://repo.packagist.org/p2/doctrine/migrations.json",
+      "require": {
+        "php": "^8.1",
+        "composer-runtime-api": "^2",
+        "doctrine/dbal": "^3.6 || ^4",
+        "doctrine/deprecations": "^0.5.3 || ^1",
+        "doctrine/event-manager": "^1.2 || ^2.0",
+        "psr/log": "^1.1.3 || ^2 || ^3",
+        "symfony/console": "^5.4 || ^6.0 || ^7.0 || ^8.0",
+        "symfony/stopwatch": "^5.4 || ^6.0 || ^7.0 || ^8.0",
+        "symfony/var-exporter": "^6.2 || ^7.0 || ^8.0"
+      },
+      "conflict": {
+        "doctrine/orm": "<2.12 || >=4"
+      }
+    },
+    "symfony/messenger": {
+      "version": "8.1.10",
+      "source": "https://repo.packagist.org/p2/symfony/messenger.json",
+      "require": {
+        "php": ">=8.4.1",
+        "psr/log": "^1|^2|^3",
+        "symfony/clock": "^7.4|^8.0",
+        "symfony/deprecation-contracts": "^2.5|^3"
+      },
+      "conflict": {
+        "symfony/console": "<7.4",
+        "symfony/dependency-injection": "<8.1",
+        "symfony/event-dispatcher-contracts": "<2.5",
+        "symfony/lock": "<7.4",
+        "symfony/serializer": "<7.4.4|>=8.0,<8.0.4"
+      }
+    },
+    "symfony/amqp-messenger": {
+      "version": "8.1.9",
+      "source": "https://repo.packagist.org/p2/symfony/amqp-messenger.json",
+      "require": {
+        "php": ">=8.4.1",
+        "ext-amqp": "*",
+        "symfony/messenger": "^8.1"
+      },
+      "conflict": {}
+    },
+    "symfony/console": {
+      "version": "8.1.10",
+      "source": "https://repo.packagist.org/p2/symfony/console.json",
+      "require": {
+        "php": ">=8.4.1",
+        "symfony/deprecation-contracts": "^2.5|^3",
+        "symfony/polyfill-mbstring": "^1.0",
+        "symfony/polyfill-php85": "^1.32",
+        "symfony/service-contracts": "^2.5|^3",
+        "symfony/string": "^7.4.6|^8.0.6"
+      },
+      "conflict": {
+        "symfony/dependency-injection": "<8.1",
+        "symfony/event-dispatcher": "<8.1"
+      }
+    },
+    "symfony/lock": {
+      "version": "8.1.10",
+      "source": "https://repo.packagist.org/p2/symfony/lock.json",
+      "require": {
+        "php": ">=8.4.1",
+        "psr/log": "^1|^2|^3"
+      },
+      "conflict": {
+        "doctrine/dbal": "<4.3"
+      }
+    },
+    "symfony/rate-limiter": {
+      "version": "8.1.10",
+      "source": "https://repo.packagist.org/p2/symfony/rate-limiter.json",
+      "require": {
+        "php": ">=8.4.1",
+        "symfony/options-resolver": "^7.4|^8.0"
+      },
+      "conflict": {}
+    },
+    "phpoffice/phpspreadsheet": {
+      "version": "5.10.0",
+      "source": "https://repo.packagist.org/p2/phpoffice/phpspreadsheet.json",
+      "require": {
+        "php": "^8.2",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-filter": "*",
+        "ext-gd": "*",
+        "ext-iconv": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-simplexml": "*",
+        "ext-xml": "*",
+        "ext-xmlreader": "*",
+        "ext-xmlwriter": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*",
+        "composer/pcre": "^1||^2||^3",
+        "maennchen/zipstream-php": "^2.1 || ^3.0",
+        "markbaker/complex": "^3.0",
+        "markbaker/matrix": "^3.0",
+        "psr/simple-cache": "^1.0 || ^2.0 || ^3.0"
+      },
+      "conflict": {}
+    },
+    "brick/math": {
+      "version": "1.0.0",
+      "source": "https://repo.packagist.org/p2/brick/math.json",
+      "require": {
+        "php": "^8.2"
+      },
+      "conflict": {}
+    },
+    "firebase/php-jwt": {
+      "version": "7.2.1",
+      "source": "https://repo.packagist.org/p2/firebase/php-jwt.json",
+      "require": {
+        "php": "^8.0"
+      },
+      "conflict": {}
+    },
+    "phpunit/phpunit": {
+      "version": "13.4.5",
+      "source": "https://repo.packagist.org/p2/phpunit/phpunit.json",
+      "require": {
+        "php": ">=8.4.1",
+        "ext-dom": "*",
+        "ext-filter": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-xmlwriter": "*",
+        "myclabs/deep-copy": "^1.14.0",
+        "phar-io/manifest": "^2.0.4",
+        "phar-io/version": "^3.2.1",
+        "phpunit/php-code-coverage": "^14.4.1",
+        "phpunit/php-file-iterator": "^7.0.2",
+        "phpunit/php-invoker": "^7.0.0",
+        "phpunit/php-text-template": "^6.0.1",
+        "phpunit/php-timer": "^9.0.0",
+        "sebastian/cli-parser": "^5.0.1",
+        "sebastian/comparator": "^8.4",
+        "sebastian/diff": "^9.0.1",
+        "sebastian/environment": "^9.3.3",
+        "sebastian/exporter": "^8.2.1",
+        "sebastian/file-filter": "^1.0",
+        "sebastian/git-state": "^1.1",
+        "sebastian/global-state": "^9.0.1",
+        "sebastian/object-enumerator": "^8.1.0",
+        "sebastian/recursion-context": "^8.0.1",
+        "sebastian/type": "^7.0.2",
+        "sebastian/version": "^7.0.1",
+        "staabm/side-effects-detector": "^1.0.5"
+      },
+      "conflict": {}
+    },
+    "phpstan/phpstan": {
+      "version": "2.3.4",
+      "source": "https://repo.packagist.org/p2/phpstan/phpstan.json",
+      "require": {
+        "php": "^7.4|^8.0"
+      },
+      "conflict": {
+        "phpstan/phpstan-shim": "*"
+      }
+    },
+    "friendsofphp/php-cs-fixer": {
+      "version": "3.95.27",
+      "source": "https://repo.packagist.org/p2/friendsofphp/php-cs-fixer.json",
+      "require": {
+        "php": "^7.4 || ^8.0",
+        "ext-filter": "*",
+        "ext-hash": "*",
+        "ext-json": "*",
+        "ext-tokenizer": "*",
+        "clue/ndjson-react": "^1.3",
+        "composer/semver": "^3.4",
+        "composer/xdebug-handler": "^3.0.5",
+        "ergebnis/agent-detector": "^1.2",
+        "fidry/cpu-core-counter": "^1.3",
+        "react/child-process": "^0.6.6",
+        "react/event-loop": "^1.5",
+        "react/socket": "^1.16",
+        "react/stream": "^1.4",
+        "sebastian/diff": "^4.0.6 || ^5.1.1 || ^6.0.2 || ^7.0 || ^8.0 || ^9.0",
+        "symfony/console": "^5.4.47 || ^6.4.24 || ^7.0 || ^8.0",
+        "symfony/event-dispatcher": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
+        "symfony/filesystem": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
+        "symfony/finder": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
+        "symfony/options-resolver": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0",
+        "symfony/polyfill-mbstring": "^1.37",
+        "symfony/polyfill-php80": "^1.37",
+        "symfony/polyfill-php81": "^1.37",
+        "symfony/polyfill-php84": "^1.37",
+        "symfony/process": "^5.4.47 || ^6.4.24 || ^7.2 || ^8.0",
+        "symfony/stopwatch": "^5.4.45 || ^6.4.24 || ^7.0 || ^8.0"
+      },
+      "conflict": {}
+    }
+  }
+}

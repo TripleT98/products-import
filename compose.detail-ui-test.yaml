@@ -1,0 +1,7 @@
+name: product-import-detail-ui-check
+
+services:
+  app:
+    image: product-import-detail-ui-backend:t23
+  nginx:
+    image: product-import-detail-ui-nginx:t23

@@ -1,0 +1,17 @@
+name: product-import-api-check
+
+services:
+  db-test:
+    # Unlike the T15/T16 tmpfs database, this disposable volume survives stop/start.
+    tmpfs: !reset []
+    volumes: [worker-db:/var/lib/postgresql]
+  app:
+    image: product-import-api-backend:t17
+    environment:
+      IMPORT_RATE_LIMIT: '5'
+      IMPORT_RATE_WINDOW_SECONDS: '60'
+  worker:
+    image: product-import-api-backend:t17
+
+volumes:
+  worker-db:

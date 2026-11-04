@@ -1,0 +1,43 @@
+name: product-import-upload-check
+
+services:
+  fixtures:
+    networks:
+      tests:
+        aliases: [app]
+
+  worker:
+    image: product-import-upload-backend:t16
+
+  app:
+    extends:
+      file: compose.worker-test.yaml
+      service: worker
+    image: product-import-upload-backend:t16
+    command: [php-fpm, -F]
+    init: true
+    stop_signal: SIGQUIT
+    environment:
+      JWT_SECRET: ${TEST_JWT_SECRET:?Use .env.test.example}
+      JWT_ISSUER: product-import
+      JWT_AUDIENCE: product-import-web
+      JWT_TTL_SECONDS: '3600'
+      APP_DIAGNOSTICS_ENABLED: 'false'
+      # T16 validation regression needs many attempts; T17 checks the default 5 separately.
+      IMPORT_RATE_LIMIT: '100'
+      XLSX_MAX_FILE_BYTES: '65536'
+      XLSX_MAX_DATA_ROWS: '3'
+      XLSX_MAX_ZIP_ENTRIES: '32'
+      XLSX_MAX_UNCOMPRESSED_BYTES: '2000000'
+
+  nginx:
+    image: product-import-upload-nginx:t16
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: production
+    network_mode: service:fixtures
+    volumes: [worker-images:/var/app/images:ro]
+    depends_on:
+      fixtures: {condition: service_healthy}
+      app: {condition: service_started}

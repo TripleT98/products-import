@@ -1,0 +1,9 @@
+name: product-import-report-ui-check
+
+services:
+  app:
+    image: product-import-report-ui-backend:t25
+  worker:
+    image: product-import-report-ui-backend:t25
+  nginx:
+    image: product-import-report-ui-nginx:t25

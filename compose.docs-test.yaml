@@ -1,0 +1,13 @@
+name: product-import-docs-check
+
+services:
+  fixtures:
+    image: product-import-docs-fixtures:t28
+  app:
+    image: product-import-docs-backend:t28
+    environment:
+      APP_DIAGNOSTICS_ENABLED: 'true'
+  worker:
+    image: product-import-docs-backend:t28
+  nginx:
+    image: product-import-docs-nginx:t28
