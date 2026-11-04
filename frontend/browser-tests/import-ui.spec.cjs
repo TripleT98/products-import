@@ -1,0 +1,76 @@
+const { test, expect } = require('@playwright/test');
+const { execFileSync } = require('node:child_process');
+const origin = process.env.AUTH_TEST_ORIGIN;
+test.use({ channel: 'msedge' });
+
+test('real upload, stopped/running worker, polling lifecycle, refresh and terminal stop', async ({ page }) => {
+  test.setTimeout(120000);
+  let posts = 0;
+  const polls = [];
+  page.on('request', request => {
+    const path = new URL(request.url()).pathname;
+    if (path === '/api/imports' && request.method() === 'POST') posts++;
+    if (/^\/api\/imports\/[^/]+$/.test(path) && request.method() === 'GET') polls.push(request.url());
+  });
+  await page.goto(origin + '/import');
+  await page.getByLabel('Имя пользователя', { exact: true }).fill('worker-fixture');
+  await page.getByLabel('Пароль', { exact: true }).fill('worker-test-password');
+  await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  const upload = page.getByRole('button', { name: 'Начать импорт' });
+  await expect(upload).toBeDisabled();
+  await page.getByLabel('Файл XLSX').setInputFiles({ name: 'invalid.csv', mimeType: 'text/csv', buffer: Buffer.from('data') });
+  await expect(page.getByRole('alert')).toContainText('.xlsx'); await expect(upload).toBeDisabled(); expect(posts).toBe(0);
+  await page.getByLabel('Файл XLSX').setInputFiles(process.env.IMPORT_UI_FILE);
+  await expect(page.locator('.file-info')).toContainText('import-ui.xlsx');
+  await page.route('**/api/imports', route => route.fulfill({ status: 429, contentType: 'application/json', headers: { 'Retry-After': '30' }, body: '{}' }), { times: 1 });
+  await upload.click(); await expect(page.getByRole('alert')).toContainText('30'); await expect(upload).toBeEnabled();
+  await page.route('**/api/imports', async route => { await new Promise(resolve => setTimeout(resolve, 400)); await route.continue(); }, { times: 1 });
+  await upload.evaluate(button => { button.click(); button.click(); });
+  await expect(page.getByRole('progressbar', { name: 'Отправка файла' })).toBeVisible();
+  await expect(page).toHaveURL(/\/import\/[a-f0-9-]+$/);
+  const jobUrl = page.url();
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+  await expect(page.getByTestId('totalRows')).toHaveText('Определяется');
+  expect(posts).toBe(2); // One controlled 429, one real POST; duplicate click made no extra request.
+  await expect.poll(() => polls.length).toBeGreaterThanOrEqual(2);
+  await page.getByRole('button', { name: 'Остановить обновление' }).click();
+  const paused = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(paused);
+  await page.getByRole('button', { name: 'Продолжить обновление' }).click();
+  await expect.poll(() => polls.length).toBeGreaterThan(paused);
+  await page.reload();
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+  await expect(page.getByTestId('totalRows')).toHaveText('Определяется');
+  await page.getByRole('link', { name: 'Импорт', exact: true }).click();
+  const left = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(left);
+  await page.goto(jobUrl);
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+
+  // Fail ONE status lookup; no automatic error loop. Retry resumes real queued status.
+  await page.route('**/api/imports/*', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"private":"hidden"}' }), { times: 1 });
+  await expect(page.getByRole('button', { name: 'Повторить получение статуса' })).toBeVisible({ timeout: 7000 });
+  await expect(page.locator('body')).not.toContainText('hidden');
+  const errored = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(errored);
+  await page.getByRole('button', { name: 'Повторить получение статуса' }).click();
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+  const args = JSON.parse(process.env.IMPORT_UI_COMPOSE_ARGS);
+  if (!args.includes('product-import-import-ui-check')) throw new Error('Wrong worker project');
+  execFileSync(process.env.IMPORT_UI_DOCKER, args.concat(['up', '-d', '--no-deps', 'worker']), { timeout: 60000, stdio: 'pipe' });
+  await expect(page.getByRole('status', { name: 'Обработка', exact: true })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId('totalRows')).toHaveText('12');
+  await page.screenshot({ path: 'import-progress.png', fullPage: true });
+  await expect(page.getByRole('status', { name: 'Завершено с замечаниями', exact: true })).toBeVisible({ timeout: 30000 });
+  for (const [field, value] of Object.entries({ processedRows: '12', createdProducts: '11', updatedProducts: '0', failedRows: '1', warningCount: '1' })) await expect(page.getByTestId(field)).toHaveText(value);
+  const finished = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(finished);
+  await page.reload(); await expect(page.getByRole('status', { name: 'Завершено с замечаниями', exact: true })).toBeVisible();
+  const restored = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(restored);
+  await page.screenshot({ path: 'import-finished.png', fullPage: true });
+  await page.getByRole('link', { name: 'Импорт', exact: true }).click();
+  await page.getByLabel('Файл XLSX').setInputFiles(process.env.IMPORT_UI_FATAL_FILE);
+  await page.getByRole('button', { name: 'Начать импорт' }).click();
+  await expect(page.getByRole('status', { name: 'Импорт не завершён', exact: true })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole('alert')).toContainText('WORKBOOK_INVALID');
+  const failed = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(failed);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'import-mobile.png', fullPage: true });
+});

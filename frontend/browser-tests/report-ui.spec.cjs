@@ -1,0 +1,75 @@
+const { test, expect } = require('@playwright/test');
+const { execFileSync } = require('node:child_process');
+const origin = process.env.AUTH_TEST_ORIGIN;
+test.use({ channel: 'msedge', actionTimeout: 10000, navigationTimeout: 20000 });
+
+test('selected import report survives navigation and refresh without claiming product ownership', async ({ page }) => {
+  test.setTimeout(120000);
+  const polls = []; const reports = [];
+  page.on('request', request => {
+    const path = new URL(request.url()).pathname;
+    if (/^\/api\/imports\/[^/]+$/.test(path) && request.method() === 'GET') polls.push(request.url());
+    if (/^\/api\/imports\/[^/]+\/issues$/.test(path)) reports.push(request.url());
+  });
+  await page.goto(origin + '/import');
+  await page.getByLabel('Имя пользователя', { exact: true }).fill('worker-fixture');
+  await page.getByLabel('Пароль', { exact: true }).fill('worker-test-password');
+  await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  await page.getByLabel('Файл XLSX').setInputFiles(process.env.REPORT_UI_FILE);
+  await page.getByRole('button', { name: 'Начать импорт' }).click();
+  await expect(page).toHaveURL(/\/import\/[a-f0-9-]+$/);
+  const jobUrl = page.url(); const id = new URL(jobUrl).pathname.split('/').pop();
+  await expect(page.getByRole('heading', { name: 'Отчёт выбранного импорта', exact: true })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+  await expect(page.getByText('Ошибок и предупреждений нет.', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'К товарам', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp('/products\\?importJobId=' + id));
+  const cardLink = page.getByRole('link', { name: 'Чай 11', exact: true });
+  await expect(cardLink).toHaveAttribute('href', new RegExp('importJobId=' + id));
+  await cardLink.click();
+  await expect(page.getByRole('heading', { name: 'Чай 11', exact: true })).toBeVisible();
+  await expect(page.getByRole('status', { name: 'В очереди', exact: true })).toBeVisible();
+  const args = JSON.parse(process.env.IMPORT_UI_COMPOSE_ARGS);
+  if (!args.includes('product-import-report-ui-check')) throw new Error('Wrong worker project');
+  execFileSync(process.env.IMPORT_UI_DOCKER, args.concat(['up', '-d', '--no-deps', 'worker']), { timeout: 60000, stdio: 'pipe' });
+  await expect(page.getByRole('status', { name: 'Обработка', exact: true })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole('status', { name: 'Завершено с замечаниями', exact: true })).toBeVisible({ timeout: 30000 });
+  for (const [field, value] of Object.entries({ processedRows: '20', createdProducts: '8', failedRows: '12', warningCount: '1' })) await expect(page.getByTestId(field)).toHaveText(value);
+  await expect(page.getByText('Записей отчёта: 13', { exact: true })).toBeVisible();
+  const rows = page.locator('table[aria-label="Ошибки и предупреждения импорта"] tbody tr');
+  await expect(rows).toHaveCount(13);
+  await expect(rows.filter({ hasText: 'Предупреждение' })).toHaveCount(1);
+  await expect(rows.filter({ hasText: 'Ошибка' })).toHaveCount(12);
+  await expect(rows.filter({ hasText: 'R0001' })).toContainText('2');
+  // Material's expanded touch target covers the select's center; use its keyboard interaction.
+  await page.getByRole('combobox', { name: 'Записей на странице' }).press('Enter');
+  await page.getByRole('option', { name: '10', exact: true }).click();
+  await expect(rows).toHaveCount(10);
+  await page.getByRole('button', { name: 'Следующая страница отчёта', exact: true }).click();
+  await expect(rows).toHaveCount(3);
+  expect(reports.some(url => url.endsWith('/issues?page=2&limit=10'))).toBe(true);
+  await page.reload(); await expect(rows).toHaveCount(13);
+  await expect(page.getByRole('heading', { name: 'Чай 11', exact: true })).toBeVisible();
+  const done = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(done);
+  await page.screenshot({ path: 'report-card.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'report-mobile.png', fullPage: true });
+  await page.getByRole('link', { name: 'К списку товаров', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp('importJobId=' + id));
+  await expect(page.getByRole('link', { name: 'Чай 11', exact: true })).toHaveAttribute('href', new RegExp('importJobId=' + id));
+  await page.goto(jobUrl); await expect(rows).toHaveCount(13);
+  await page.reload(); await expect(rows).toHaveCount(13);
+  await page.goto(origin + '/products/11');
+  await expect(page.getByRole('heading', { name: 'Чай 11', exact: true })).toBeVisible();
+  await expect(page.locator('app-import-report-widget')).toHaveCount(0);
+  const absent = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(absent);
+  for (const unavailable of ['00000000-0000-4000-8000-000000000000', process.env.REPORT_FOREIGN_JOB]) {
+    const response = page.waitForResponse(r => r.url().endsWith('/api/imports/' + unavailable));
+    await page.goto(origin + '/products/11?importJobId=' + unavailable);
+    expect((await response).status()).toBe(404);
+    await expect(page.getByRole('heading', { name: 'Чай 11', exact: true })).toBeVisible();
+    await expect(page.getByText('Задача не найдена или недоступна.', { exact: true })).toBeVisible();
+    const stopped = polls.length; await page.waitForTimeout(2300); expect(polls.length).toBe(stopped);
+  }
+});

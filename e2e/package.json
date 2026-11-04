@@ -1,0 +1,8 @@
+{
+  "name": "product-import-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
