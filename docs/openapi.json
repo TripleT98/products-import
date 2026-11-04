@@ -1,0 +1,1592 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Product import API",
+    "version": "0.1.0",
+    "description": "Implemented API contract (T28). JSON camelCase; SQL snake_case; query price_min/price_max. Required nullable fields remain present with null. UTC timestamps and DECIMAL strings. Responses carry X-Request-ID. Examples use synthetic data; IDs, timestamps and JWT vary at runtime. /docs/ serves public same-origin Swagger UI; API authorization/ownership is unchanged. Static /images and /_nginx-health are infrastructure resources, not API operations. Export and HTTP write CRUD are not specified."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Same-origin nginx, including configured port; default local site http://127.0.0.1:8080"
+    }
+  ],
+  "tags": [
+    {
+      "name": "System"
+    },
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Products"
+    },
+    {
+      "name": "Imports"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "System"
+        ],
+        "security": [],
+        "summary": "Readiness of database and broker",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                },
+                "example": {
+                  "status": "ok",
+                  "dependencies": {
+                    "database": "ready",
+                    "broker": "ready"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Public readiness: real PostgreSQL SELECT 1 and AMQP connect with short timeouts (PG connect 2s, statement 1s; AMQP connect/read/write/rpc 2s). No storage/queue/worker/schema check. On either dependency failure, standard 503 ErrorResponse without credentials or internal addresses. No-store."
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "login",
+        "tags": [
+          "Auth"
+        ],
+        "security": [],
+        "summary": "Issue JWT for fixture user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "username": "fixture-user",
+                "password": "password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT; default lifetime 3600 seconds JWT example is a placeholder, not a usable credential. Obtain a real token through login.",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                },
+                "example": {
+                  "accessToken": "example.jwt.token",
+                  "tokenType": "Bearer",
+                  "expiresIn": 3600,
+                  "user": {
+                    "id": 1,
+                    "username": "fixture-user"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "operationId": "listProducts",
+        "tags": [
+          "Products"
+        ],
+        "summary": "Server-side product search and pagination",
+        "description": "SQL LIMIT/OFFSET, id ASC; same predicates for COUNT and items. Case-insensitive literal name substring. Inclusive price bounds. Changed frontend filters reset page. Far page has empty items; no results -> totalPages=0.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Positive base-10 integer, default 1. Empty, fractional, repeated or malformed value -> 400.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Positive integer, max 100; no silent clamping.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "description": "Trimmed literal substring; empty means no name filter.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "price_min",
+            "in": "query",
+            "required": false,
+            "description": "Nonnegative decimal, max 9999999999999999.99, dot only; lower inclusive bound.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+            }
+          },
+          {
+            "name": "price_max",
+            "in": "query",
+            "required": false,
+            "description": "Same syntax; >= price_min. Invalid/empty/inverted range -> 400.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product page",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": 1,
+                      "externalCode": "000001",
+                      "name": "Товар",
+                      "description": "",
+                      "price": "1320.00",
+                      "purchasePrice": "880.00",
+                      "discount": "33.33",
+                      "createdAt": "2026-11-01T12:00:00Z",
+                      "updatedAt": "2026-11-01T12:00:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "tags": [
+          "Products"
+        ],
+        "summary": "Product with attributes and local images",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Positive product ID; malformed -> 400, missing -> 404.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail; attributes ordered by key ASC, images position ASC then id ASC",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDetail"
+                },
+                "example": {
+                  "id": 1,
+                  "externalCode": "000001",
+                  "name": "Товар",
+                  "description": "",
+                  "price": "1320.00",
+                  "purchasePrice": "880.00",
+                  "discount": "33.33",
+                  "createdAt": "2026-11-01T12:00:00Z",
+                  "updatedAt": "2026-11-01T12:00:00Z",
+                  "attributes": [
+                    {
+                      "id": 1,
+                      "key": "Размер",
+                      "value": "0"
+                    }
+                  ],
+                  "images": [
+                    {
+                      "id": 1,
+                      "url": "https://example.org/photo.jpg",
+                      "path": "/images/example.png",
+                      "position": 0
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/imports": {
+      "post": {
+        "operationId": "createImport",
+        "tags": [
+          "Imports"
+        ],
+        "summary": "Accept XLSX for asynchronous processing",
+        "description": "Multipart field file. No product writes in request. Shared rate limit: default 5 requests/minute per authenticated user. Only 202 after durable job/file and successful publish. API and worker share private upload storage. Business structure/row validation happens in worker; fatal book errors become failed job. Fixed window starts at first attempt (second precision); invalid authenticated uploads reaching the controller also count. Rejected attempts do not extend the window. Config: IMPORT_RATE_LIMIT / IMPORT_RATE_WINDOW_SECONDS; shared PostgreSQL store survives app restart. 401 and nginx rejection do not consume a slot.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Unencrypted .xlsx. Default upload maximum 10485760 bytes. Do not trust client MIME."
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/zip, application/octet-stream"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted and queued",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportAccepted"
+                },
+                "example": {
+                  "jobId": "123e4567-e89b-42d3-a456-426614174000",
+                  "status": "queued"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/imports/{id}": {
+      "get": {
+        "operationId": "getImport",
+        "tags": [
+          "Imports"
+        ],
+        "summary": "Durable import status owned by caller",
+        "description": "Poll about every 2 seconds, no overlap. Stop on terminal status and route destroy. Resume by job ID after refresh. totalRows may remain null until scan; warnings do not increase failedRows. Normal terminal: processedRows=createdProducts+updatedProducts+failedRows. failed can retain partial progress.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Import job UUID; malformed -> 400; missing/foreign -> 404.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJob"
+                },
+                "example": {
+                  "id": "123e4567-e89b-42d3-a456-426614174000",
+                  "status": "completed_with_errors",
+                  "totalRows": 40,
+                  "processedRows": 40,
+                  "createdProducts": 39,
+                  "updatedProducts": 0,
+                  "failedRows": 1,
+                  "warningCount": 1,
+                  "createdAt": "2026-11-01T12:00:00Z",
+                  "startedAt": "2026-11-01T12:00:01Z",
+                  "updatedAt": "2026-11-01T12:00:05Z",
+                  "finishedAt": "2026-11-01T12:00:05Z",
+                  "fatalError": null
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/imports/{id}/issues": {
+      "get": {
+        "operationId": "listImportIssues",
+        "tags": [
+          "Imports"
+        ],
+        "summary": "Persisted paginated row errors and image warnings",
+        "description": "Owner only. Stable id ASC. Available during processing and after restart. Empty list is valid. Book/system issue may have null rowNumber/externalCode/field. No private paths or raw stack traces.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Import job UUID; malformed -> 400; missing/foreign -> 404.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Positive base-10 integer, default 1. Empty, fractional, repeated or malformed value -> 400.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Positive integer, max 100; no silent clamping.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issue page",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuePage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": 1,
+                      "severity": "error",
+                      "code": "INVALID_PRICE",
+                      "message": "Цена должна быть положительной.",
+                      "rowNumber": 3,
+                      "externalCode": "000002",
+                      "field": "price"
+                    },
+                    {
+                      "id": 2,
+                      "severity": "warning",
+                      "code": "IMAGE_DOWNLOAD_FAILED",
+                      "message": "Изображение недоступно.",
+                      "rowNumber": 4,
+                      "externalCode": "000003",
+                      "field": "images"
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 50,
+                    "total": 2,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/_diagnostics": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "getDiagnostics",
+        "summary": "Optional public operator probe (disabled by default)",
+        "description": "Available only when APP_DIAGNOSTICS_ENABLED=true; otherwise routing returns 404. Public metadata only, no credentials. Includes storage writability. Prefer /api/health for readiness.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Infrastructure/storage ready",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Server-generated correlation ID; also used in logs.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Diagnostics"
+                },
+                "example": {
+                  "status": "ok",
+                  "service": "product-import-api",
+                  "dependencies": {
+                    "database": "ready",
+                    "broker": "ready"
+                  },
+                  "storage": {
+                    "uploads": "writable",
+                    "images": "writable"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "description": "Infrastructure or storage unavailable; diagnostic report (not the regular API error envelope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Diagnostics"
+                },
+                "example": {
+                  "status": "unavailable",
+                  "service": "product-import-api",
+                  "dependencies": {
+                    "database": "unavailable",
+                    "broker": "ready"
+                  },
+                  "storage": {
+                    "uploads": "writable",
+                    "images": "writable"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "HS256, fixed algorithm; sub=user ID; default TTL 3600s; stored in sessionStorage; no refresh endpoint."
+      }
+    },
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "externalCode",
+          "name",
+          "description",
+          "price",
+          "purchasePrice",
+          "discount",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "externalCode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "Strictly positive sale price, e.g. 1320.00."
+          },
+          "purchasePrice": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "DECIMAL(18,2), canonical nonnegative decimal string, no exponent."
+          },
+          "discount": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "DECIMAL(18,2), canonical signed decimal string; no negative zero."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          }
+        }
+      },
+      "ProductAttribute": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "key",
+          "value"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "ProductImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "path",
+          "position"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Original HTTP(S) URL"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^/images/[^\\s]+$",
+            "description": "Public local image URL path, never an absolute filesystem path"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          }
+        }
+      },
+      "ProductDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "externalCode",
+          "name",
+          "description",
+          "price",
+          "purchasePrice",
+          "discount",
+          "createdAt",
+          "updatedAt",
+          "attributes",
+          "images"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "externalCode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "Strictly positive sale price, e.g. 1320.00."
+          },
+          "purchasePrice": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "DECIMAL(18,2), canonical nonnegative decimal string, no exponent."
+          },
+          "discount": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]{0,15})\\.[0-9]{2}$",
+            "description": "DECIMAL(18,2), canonical signed decimal string; no negative zero."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductAttribute"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductImage"
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          }
+        }
+      },
+      "ProductPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "format": "password"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ],
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expiresIn": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "user": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "username"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "username": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "ImportAccepted": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "jobId",
+          "status"
+        ],
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued"
+            ]
+          }
+        }
+      },
+      "ImportJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "totalRows",
+          "processedRows",
+          "createdProducts",
+          "updatedProducts",
+          "failedRows",
+          "warningCount",
+          "createdAt",
+          "startedAt",
+          "finishedAt",
+          "updatedAt",
+          "fatalError"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "completed",
+              "completed_with_errors",
+              "failed"
+            ]
+          },
+          "totalRows": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "processedRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "createdProducts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "updatedProducts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "failedRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "warningCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC RFC3339, suffix Z"
+          },
+          "fatalError": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ImportIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "code",
+          "message",
+          "rowNumber",
+          "externalCode",
+          "field"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rowNumber": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 2
+          },
+          "externalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "field": {
+            "type": "string",
+            "nullable": true,
+            "description": "camelCase DTO field or attributes.<key>; null for book/system issue"
+          }
+        }
+      },
+      "IssuePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportIssue"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "code",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message",
+              "details"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "dependencies"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "dependencies": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "database",
+              "broker"
+            ],
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": [
+                  "ready"
+                ]
+              },
+              "broker": {
+                "type": "string",
+                "enum": [
+                  "ready"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "Diagnostics": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "service",
+          "dependencies",
+          "storage"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "enum": [
+              "product-import-api"
+            ]
+          },
+          "dependencies": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "database",
+              "broker"
+            ],
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "unavailable"
+                ]
+              },
+              "broker": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "storage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uploads",
+              "images"
+            ],
+            "properties": {
+              "uploads": {
+                "type": "string",
+                "enum": [
+                  "writable",
+                  "unavailable"
+                ]
+              },
+              "images": {
+                "type": "string",
+                "enum": [
+                  "writable",
+                  "unavailable"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "400: Invalid JSON, query/path parameters or missing multipart file.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "INVALID_REQUEST",
+                "message": "Некорректные параметры запроса.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "401: Missing, invalid or expired token; invalid login credentials.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UNAUTHORIZED",
+                "message": "Требуется вход.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "404: Resource missing or owned by another user.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "NOT_FOUND",
+                "message": "Ресурс не найден.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "PayloadTooLarge": {
+        "description": "413: Upload limit exceeded.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UPLOAD_TOO_LARGE",
+                "message": "Превышен лимит файла.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "UnsupportedMediaType": {
+        "description": "415: Unsupported MIME/extension or Content-Type.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UNSUPPORTED_FILE_TYPE",
+                "message": "Требуется XLSX.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "422: Broken ZIP/OOXML structure, encryption or archive limits detected before enqueue.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "INVALID_WORKBOOK",
+                "message": "Некорректная книга XLSX.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "429: Shared per-user upload limit reached.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Seconds until retry is allowed."
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "IMPORT_RATE_LIMITED",
+                "message": "Слишком много загрузок.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "500: Safe error without stack trace.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Внутренняя ошибка.",
+                "details": []
+              }
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "503: Dependency unavailable. Enqueue failure attempts to mark a still-queued job failed; an uncertain publish/worker race may already have started work. Do not automatically resend the upload. No 202 success is claimed on this response.",
+        "headers": {
+          "X-Request-ID": {
+            "description": "Server-generated correlation ID; also used in logs.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "SERVICE_UNAVAILABLE",
+                "message": "Сервис временно недоступен.",
+                "details": []
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
