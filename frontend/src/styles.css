@@ -1,0 +1,147 @@
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+@import '../public/fonts/manrope/manrope.css';
+
+:root {
+    color-scheme: dark;
+    font-family:
+        'Manrope',
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+    color: var(--mat-sys-on-background);
+    background: #303131;
+}
+* {
+    box-sizing: border-box;
+}
+:root {
+    --mat-sys-body-large-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-body-medium-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-body-small-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-large-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-medium-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-small-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-large-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-medium-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-small-font: 'Manrope', system-ui, sans-serif;
+    --mat-form-field-container-height: 44px;
+    --mat-form-field-container-vertical-padding: 10px;
+    --mat-form-field-container-text-size: 14px;
+    --mat-form-field-filled-with-label-container-padding-top: 16px;
+    --mat-form-field-filled-with-label-container-padding-bottom: 4px;
+}
+body {
+    margin: 0;
+}
+h1 {
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1.2;
+    margin: 0 0 28px;
+}
+p {
+    line-height: 1.6;
+}
+.route-id {
+    overflow-wrap: anywhere;
+}
+
+/* Graphite surfaces and warm sand accents, shared by all Material components. */
+:root {
+    --mat-sys-background: #303131;
+    --mat-sys-on-background: #f2eee7;
+    --mat-sys-surface: #363737;
+    --mat-sys-surface-dim: #292a2a;
+    --mat-sys-surface-bright: #50504d;
+    --mat-sys-surface-container-lowest: #272828;
+    --mat-sys-surface-container-low: #323333;
+    --mat-sys-surface-container: #3b3c3b;
+    --mat-sys-surface-container-high: #454644;
+    --mat-sys-surface-container-highest: #50514e;
+    --mat-sys-surface-variant: #4c4b46;
+    --mat-sys-on-surface: #f2eee7;
+    --mat-sys-on-surface-variant: #d0cbc0;
+    --mat-sys-outline: #a39d91;
+    --mat-sys-outline-variant: #68685f;
+    --mat-sys-primary: #d4bfa2;
+    --mat-sys-on-primary: #30291f;
+    --mat-sys-primary-container: #5b5041;
+    --mat-sys-on-primary-container: #f4e1c6;
+    --mat-sys-primary-fixed: #f4e1c6;
+    --mat-sys-primary-fixed-dim: #d4bfa2;
+    --mat-sys-on-primary-fixed: #30291f;
+    --mat-sys-on-primary-fixed-variant: #514535;
+    --mat-sys-secondary: #c8c2af;
+    --mat-sys-on-secondary: #302e24;
+    --mat-sys-secondary-container: #504d40;
+    --mat-sys-on-secondary-container: #eee6d2;
+    --mat-sys-secondary-fixed: #eee6d2;
+    --mat-sys-secondary-fixed-dim: #c8c2af;
+    --mat-sys-on-secondary-fixed: #302e24;
+    --mat-sys-on-secondary-fixed-variant: #504d40;
+    --mat-sys-tertiary: #b7c6c9;
+    --mat-sys-on-tertiary: #243337;
+    --mat-sys-tertiary-container: #3e5359;
+    --mat-sys-on-tertiary-container: #dae6e8;
+    --mat-sys-tertiary-fixed: #dae6e8;
+    --mat-sys-tertiary-fixed-dim: #b7c6c9;
+    --mat-sys-on-tertiary-fixed: #243337;
+    --mat-sys-on-tertiary-fixed-variant: #3e5359;
+    --mat-sys-inverse-surface: #e8e0d2;
+    --mat-sys-inverse-on-surface: #303131;
+    --mat-sys-inverse-primary: #68543b;
+    --mat-sys-surface-tint: #d4bfa2;
+    --mat-sys-error: #ffb4ab;
+    --mat-sys-on-error: #601410;
+    --mat-sys-error-container: #762822;
+    --mat-sys-on-error-container: #ffdad6;
+    --mat-sys-neutral-variant20: #363731;
+    --mat-sys-neutral10: #272828;
+    --app-text-muted: #d0cbc0;
+    --app-warning: #efd29a;
+    --app-warning-surface: #4d4330;
+    --app-warning-border: #a68d60;
+}
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse at 95% 0%, #8a776355, transparent 55%),
+        radial-gradient(ellipse at 0% 100%, #73858d44, transparent 60%),
+        var(--mat-sys-background);
+    color: var(--mat-sys-on-background);
+}
+a {
+    color: var(--mat-sys-primary);
+}
+::selection {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+}
+
+/* Apply the local font to Material typography, including shorthand tokens. */
+:root {
+    --mat-sys-body-large: 400 1rem / 1.5rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-body-medium: 400 .875rem / 1.25rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-body-small: 400 .75rem / 1rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-large: 500 .875rem / 1.25rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-medium: 500 .75rem / 1rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-label-small: 500 .6875rem / 1rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-large: 400 1.375rem / 1.75rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-medium: 500 1rem / 1.5rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-title-small: 500 .875rem / 1.25rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-large: 400 2rem / 2.5rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-large-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-medium: 400 1.75rem / 2.25rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-medium-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-small: 400 1.5rem / 2rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-headline-small-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-large: 400 3.5625rem / 4rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-large-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-medium: 400 2.8125rem / 3.25rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-medium-font: 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-small: 400 2.25rem / 2.75rem 'Manrope', system-ui, sans-serif;
+    --mat-sys-display-small-font: 'Manrope', system-ui, sans-serif;
+}
+input, button, select, textarea {
+    font-family: inherit;
+}

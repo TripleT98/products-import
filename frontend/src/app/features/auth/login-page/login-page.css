@@ -1,0 +1,24 @@
+:host {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    max-width: 440px;
+    min-width: 440px;
+}
+
+.login-card__header {
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: center;
+    }
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 8px;
+}

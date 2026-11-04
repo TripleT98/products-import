@@ -1,0 +1,31 @@
+<a class="skip-link" href="#main-content">Перейти к содержимому</a>
+@if (!isLoginPage()) {
+    <mat-toolbar class="app-toolbar">
+    <a class="brand-link" routerLink="/products">Каталог товаров</a>
+    <nav aria-label="Основная навигация">
+        <a mat-button routerLink="/products" routerLinkActive="active" ariaCurrentWhenActive="page"
+            >Товары</a
+        >
+        <a mat-button routerLink="/import" routerLinkActive="active" ariaCurrentWhenActive="page"
+            >Импорт</a
+        >
+        @if (session.user(); as user) {
+            <span class="session-user">{{ user.username }}</span>
+            <button mat-button type="button" (click)="session.logout()">Выйти</button>
+        } @else {
+            <a mat-button routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page"
+                >Вход</a
+            >
+        }
+    </nav>
+</mat-toolbar>
+}
+<main id="main-content" class="page-container" tabindex="-1">
+    @if (notifications.message(); as message) {
+        <div class="api-notice" role="alert">
+            {{ message }}
+            <button mat-button type="button" (click)="notifications.dismiss()">Закрыть</button>
+        </div>
+    }
+    <router-outlet />
+</main>

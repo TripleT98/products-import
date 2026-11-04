@@ -1,0 +1,67 @@
+.app-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    height: auto;
+    min-height: 72px;
+    flex-wrap: wrap;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+.brand-link {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.session-user {
+    align-self: center;
+    font-size: 14px;
+    padding: 0 8px;
+    overflow-wrap: anywhere;
+}
+.api-notice {
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    background: var(--app-warning-surface);
+    border: 1px solid var(--app-warning-border);
+    border-radius: 8px;
+}
+nav .active {
+    background: var(--mat-sys-secondary-container);
+}
+.page-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 36px 24px;
+}
+.skip-link {
+    position: absolute;
+    left: 16px;
+    top: -100px;
+    z-index: 10;
+    padding: 12px;
+    background: var(--mat-sys-inverse-surface);
+    color: var(--mat-sys-inverse-on-surface);
+}
+.skip-link:focus {
+    top: 8px;
+}
+@media (max-width: 500px) {
+    .app-toolbar {
+        padding: 16px;
+        gap: 12px;
+    }
+    .page-container {
+        padding: 28px 16px;
+    }
+}
+
+.app-toolbar {
+    background: var(--mat-sys-surface-container-lowest);
+    color: var(--mat-sys-on-surface);
+}
