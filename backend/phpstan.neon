@@ -1,0 +1,14 @@
+includes:
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - public
+        - bin
+        - tests
+        - migrations
+    tmpDir: .phpstan
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
