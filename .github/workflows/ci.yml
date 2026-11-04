@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: 'true'
+  PYTHONUNBUFFERED: '1'
+  E2E_BROWSER_CHANNEL: chromium-headless-shell
+
+jobs:
+  checks:
+    name: Quality, real e2e and production builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Node (same version as Docker tooling)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.22.1'
+      - name: Validate workflow
+        run: python scripts/check-workflow.py
+      - name: Backend and frontend checks in isolated PostgreSQL
+        run: |
+          mkdir -p tmp/ci
+          python scripts/verify.py check 2>&1 | tee tmp/ci/check.log
+      - name: Install locked Playwright and Chromium dependencies
+        run: |
+          npm ci --prefix e2e --ignore-scripts --no-audit --no-fund
+          node e2e/node_modules/@playwright/test/cli.js install --with-deps --only-shell chromium
+      - name: Real browser, API, worker and RabbitMQ
+        run: python scripts/check-e2e.py 2>&1 | tee tmp/ci/e2e.log
+      - name: Production Docker targets (build only, no push)
+        run: python scripts/check-docker-build.py 2>&1 | tee tmp/ci/docker-build.log
+      - name: Preserve diagnostics even when checks fail
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            tmp/ci/*.log
+            tmp/verification-*.json
+            tmp/t26-e2e/latest.json
+            tmp/t26-e2e/runs/**
